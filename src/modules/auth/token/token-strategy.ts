@@ -1,14 +1,16 @@
+import { Injectable } from '@nestjs/common';
 import { JwtSecretRequestType } from '@nestjs/jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ACCESS_TOKEN_SECRET } from 'src/common/constant/app.constant';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 
+@Injectable()
 export class TokenCheckStategy extends PassportStrategy(
   Strategy,
   'token-check',
 ) {
-  constructor(private prisma: PrismaService) {
+  constructor(public prisma: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,8 +18,9 @@ export class TokenCheckStategy extends PassportStrategy(
     });
   }
   async validate(payload: any) {
-    const user = this.prisma.users.findUnique({
-      where: { user_id: payload.user_id },
+    console.log(`TOKEN - validate`);
+    const user = await this.prisma.users.findUnique({
+      where: { user_id: payload.userID },
     });
     return user;
   }

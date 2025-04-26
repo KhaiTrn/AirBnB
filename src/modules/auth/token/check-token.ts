@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ export class CheckTokenGuard extends AuthGuard('token-check') {
     super();
   }
   canActivate(context: ExecutionContext) {
+    console.log(`TOKEN - canActivate`);
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -23,16 +25,19 @@ export class CheckTokenGuard extends AuthGuard('token-check') {
   }
 
   handleRequest(err, user, info) {
+    console.log(`TOKEN - handleRequest`);
+
+    console.log({ err, user, info });
     // You can throw an exception based on either "info" or "err" arguments
     if (err || !user) {
-      if (info instanceof JsonWebTokenError) {
-        throw new BadRequestException('Invalid token');
-      }
       if (info instanceof TokenExpiredError) {
-        throw new BadRequestException('Token expired');
+        throw new ForbiddenException('Token expired');
+      }
+      if (info instanceof JsonWebTokenError) {
+        throw new ForbiddenException('Invalid token');
       }
       if (info instanceof Error) {
-        throw new BadRequestException(info.message);
+        throw new UnauthorizedException(info.message);
       }
       throw err || new UnauthorizedException();
     }
