@@ -1,22 +1,52 @@
-import { Injectable, Req } from '@nestjs/common';
+import { BadRequestException, Injectable, Req } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { ResponseSuccess } from 'src/common/decorators/response-success.decorator';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto, file: any, req: any) {
+    let { email, password, userName, role_id, birth_day, phone, gender } =
+      createUserDto;
+    const isUser = await this.prisma.users.findFirst({
+      where: { email: email },
+    });
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const imageUrl = `${protocol}://${host}/upload/${file.filename}`;
+    if (isUser) throw new BadRequestException('user is exist');
+    const hashPassword = await bcrypt.hash(password, 10);
+    const date = birth_day !== undefined ? new Date(birth_day) : undefined;
+
+    const newUser = await this.prisma.users.create({
+      data: {
+        email,
+        password: hashPassword,
+        userName: userName,
+        role_id: +role_id,
+        birth_day: date,
+        phone: phone,
+        gender: gender,
+        avatar: imageUrl,
+      },
+    });
+    return newUser;
   }
 
   async findAll() {
     const users = await this.prisma.users.findMany();
-    return users;
+    const usersExpect = users.map(
+      ({ password, google_id, face_app_id, ...rest }) => rest,
+    );
+
+    return usersExpect;
   }
   findOne(id: number) {
-    const user = this.prisma.users.findUnique({ where: { user_id: id } });
+    const user = this.prisma.users.findUnique({
+      where: { user_id: id },
+    });
+    if (!user) throw new BadRequestException('không tìm thấy user');
     return user;
   }
 
@@ -24,7 +54,13 @@ export class UsersService {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    if (!id) throw new BadRequestException('không có id để xóa');
+    const isUser = await this.prisma.users.findUnique({
+      where: { user_id: id },
+    });
+    if (!isUser) throw new BadRequestException('không có user để xóa');
+    await this.prisma.users.delete({ where: { user_id: id } });
     return `This action removes a #${id} user`;
   }
   async findBySearch(query: any) {

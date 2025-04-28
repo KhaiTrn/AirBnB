@@ -7,11 +7,16 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from 'src/common/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import uploadLocal from 'src/common/multer/local.multer';
 
 @Controller('users')
 export class UsersController {
@@ -23,15 +28,16 @@ export class UsersController {
     return await this.usersService.findAll();
   }
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @UseInterceptors(FileInterceptor('avatar', uploadLocal))
+  async create(
+    @UploadedFile() file: any,
+    @Body() createUserDto: CreateUserDto,
+    @Req() req: any,
+  ) {
+    return await this.usersService.create(createUserDto, file, req);
   }
   @Get(`phan-trang-tim-kiem`)
-  async findBySearch(
-    @Query() query: any,
-    @Query(`page`) page: string,
-    @Query('pageSize') pageSize: string,
-  ) {
+  async findBySearch(@Query() query: any) {
     return await this.usersService.findBySearch(query);
   }
   @Get(':id')
