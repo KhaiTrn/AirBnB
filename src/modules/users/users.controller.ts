@@ -36,6 +36,11 @@ export class UsersController {
   ) {
     return await this.usersService.create(createUserDto, file, req);
   }
+  @Post('upload-cloud/:id')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadAvatar(@Param('id') id: string, @UploadedFile() file: any) {
+    return await this.usersService.uploadAvatar(+id, file);
+  }
   @Get(`phan-trang-tim-kiem`)
   async findBySearch(@Query() query: any) {
     return await this.usersService.findBySearch(query);
@@ -45,6 +50,7 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('avatar', uploadLocal))
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }

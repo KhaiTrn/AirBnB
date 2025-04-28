@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { v2 as cloudinary } from 'cloudinary';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -33,7 +34,31 @@ export class UsersService {
     });
     return newUser;
   }
-
+  async uploadAvatar(id: number, file: any) {
+    if (!file) throw new BadRequestException('không có file để upload');
+    //configuration
+    console.log(file);
+    cloudinary.config({
+      cloud_name: 'khangtran123',
+      api_key: '761248371221344',
+      api_secret: 'Wfivo_6Zj3YHRqk7sO8dYzL4EKU',
+    });
+    const uploadResult: any = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: 'avatar' }, (error, result) => {
+          if (error) return reject(error);
+          return resolve(result);
+        })
+        .end(file.buffer);
+    });
+    const user = this.prisma.users.update({
+      where: { user_id: id },
+      data: {
+        avatar: uploadResult.secure_url,
+      },
+    });
+    return user;
+  }
   async findAll() {
     const users = await this.prisma.users.findMany();
     const usersExpect = users.map(
@@ -42,6 +67,7 @@ export class UsersService {
 
     return usersExpect;
   }
+
   findOne(id: number) {
     const user = this.prisma.users.findUnique({
       where: { user_id: id },
@@ -50,8 +76,22 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const { email, password, userName, birth_day, phone } = updateUserDto;
+    if (!id) throw new BadRequestException('không có id để update');
+    const date = birth_day ? new Date(birth_day) : undefined;
+    const hashPassword = await bcrypt.hash(password, 10);
+    const updateUser = this.prisma.users.update({
+      where: { user_id: id },
+      data: {
+        email,
+        password: hashPassword,
+        userName,
+        birth_day: date,
+        phone,
+      },
+    });
+    return updateUser;
   }
 
   async remove(id: number) {
