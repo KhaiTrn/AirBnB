@@ -7,7 +7,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   email: string;
   password: string;
   userName: string;
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+  @Matches(/^(19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, {
     message: 'dữ liệu gửi lên phải là YYYY-MM-DD',
   })
   @Type(() => Date)

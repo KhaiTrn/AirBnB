@@ -1,6 +1,6 @@
 import { IsEmail, IsString } from 'class-validator';
 
-export class CreateUserDto {
+export class CreateRegisterDto {
   @IsString()
   @IsEmail({}, { message: 'email phải đúng định dạng' })
   email: string;

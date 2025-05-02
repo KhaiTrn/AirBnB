@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create_user.dto';
+import { CreateRegisterDto } from './dto/register-auth.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -20,8 +20,8 @@ export class AuthService {
     private prisma: PrismaService,
     public jwt: JwtService,
   ) {}
-  async register(createUserDto: CreateUserDto) {
-    const { email, password, userName } = createUserDto;
+  async register(createRegisterDto: CreateRegisterDto) {
+    const { email, password, userName } = createRegisterDto;
     const isUserNew = await this.prisma.users.findFirst({
       where: { email: email },
     });
@@ -56,12 +56,15 @@ export class AuthService {
   }
 
   async refreshToken(headers: any) {
-    const refreshToken = headers.authorization;
+    console.log(headers);
+    console.log('aaaaaa');
+    const refreshToken = headers.authorization.split(' ')[1];
+    console.log(refreshToken);
     if (!refreshToken)
       throw new UnauthorizedException('vui lòng cấp token để sử dụng');
     const accessToken = headers[`x-access-token`];
     if (!accessToken)
-      throw new UnauthorizedException('Vui lòng cấp token để sử dụng');
+      throw new UnauthorizedException('Vui lòng cấp tokenaaa để sử dụng');
     const decodeRefreshToken = await this.jwt.verifyAsync(refreshToken, {
       secret: REFRESH_TOKEN_SECRET,
     });

@@ -34,10 +34,10 @@ export class CheckTokenGuard extends AuthGuard('token-check') {
         throw new ForbiddenException('Token expired');
       }
       if (info instanceof JsonWebTokenError) {
-        throw new ForbiddenException('Invalid token');
+        throw new UnauthorizedException('Invalid token');
       }
       if (info instanceof Error) {
-        throw new UnauthorizedException(info.message);
+        throw new BadRequestException(info.message);
       }
       throw err || new UnauthorizedException();
     }

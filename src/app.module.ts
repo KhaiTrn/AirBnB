@@ -8,6 +8,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TokenCheckStategy } from './modules/auth/token/token-strategy';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { LocationsModule } from './modules/locations/locations.module';
+import { CloudinaryService } from './modules/cloudinary/cloudinary.service';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 
 @Module({
   imports: [
@@ -19,8 +23,11 @@ import { join } from 'path';
     AuthModule,
     UsersModule,
     PrismaModule,
+    LocationsModule,
+    CloudinaryModule,
+    RoomsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TokenCheckStategy],
+  providers: [AppService, TokenCheckStategy, CloudinaryService],
 })
 export class AppModule {}

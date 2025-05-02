@@ -4,9 +4,18 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { v2 as cloudinary } from 'cloudinary';
+import {
+  API_KEY,
+  API_SECRET,
+  CLOUD_NAME,
+} from 'src/common/constant/app.constant';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+  ) {}
   async create(createUserDto: CreateUserDto, file: any, req: any) {
     let { email, password, userName, role_id, birth_day, phone, gender } =
       createUserDto;
@@ -34,30 +43,21 @@ export class UsersService {
     });
     return newUser;
   }
-  async uploadAvatar(id: number, file: any) {
+  async uploadAvatar(req: any, file: any) {
+    const { user } = req;
+    console.log(user);
     if (!file) throw new BadRequestException('không có file để upload');
     //configuration
     console.log(file);
-    cloudinary.config({
-      cloud_name: 'khangtran123',
-      api_key: '761248371221344',
-      api_secret: 'Wfivo_6Zj3YHRqk7sO8dYzL4EKU',
-    });
-    const uploadResult: any = await new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream({ folder: 'avatar' }, (error, result) => {
-          if (error) return reject(error);
-          return resolve(result);
-        })
-        .end(file.buffer);
-    });
-    const user = this.prisma.users.update({
-      where: { user_id: id },
+    const uploadAvatar: any = await this.cloudinary.uploadImage(file, 'avatar');
+
+    const userUpdate = this.prisma.users.update({
+      where: { user_id: user.user_id },
       data: {
-        avatar: uploadResult.secure_url,
+        avatar: uploadAvatar.secure_url,
       },
     });
-    return user;
+    return userUpdate;
   }
   async findAll() {
     const users = await this.prisma.users.findMany();
