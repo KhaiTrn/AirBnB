@@ -66,14 +66,15 @@ model users {
 }
 
 model booking {
-  booking_id   Int      @id @default(autoincrement())
+  booking_id   Int             @id @default(autoincrement())
   room_id      Int
-  ngayDen      DateTime @db.Timestamp(0)
-  ngayDi       DateTime @db.Timestamp(0)
-  soLuongKhach Int      @default(1)
+  ngayDen      DateTime        @db.DateTime(0)
+  ngayDi       DateTime        @db.DateTime(0)
+  soLuongKhach Int             @default(1)
+  status       booking_status? @default(PENDING)
   user_id      Int
-  rooms        rooms    @relation(fields: [room_id], references: [room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_room_id_5")
-  users        users    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id_5")
+  rooms        rooms           @relation(fields: [room_id], references: [room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_room_id_5")
+  users        users           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id_5")
 
   @@index([room_id], map: "fk_room_id_5")
   @@index([user_id], map: "fk_user_id_5")
@@ -86,8 +87,8 @@ model comments {
   user_id     Int
   created_at  DateTime? @default(now()) @db.Timestamp(0)
   update_at   DateTime? @default(now()) @db.Timestamp(0)
-  content     String    @db.VarChar(255)
-  saoBinhLuan Int       @db.TinyInt
+  content     String?   @db.VarChar(255)
+  saoBinhLuan Int       @default(5) @db.TinyInt
   rooms       rooms     @relation(fields: [room_id], references: [room_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_room_id_4")
   users       users     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id_4")
 
@@ -133,4 +134,10 @@ model rooms {
   users       users      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_id_3")
 
   @@index([user_id], map: "fk_user_id_3")
+}
+
+enum booking_status {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }

@@ -12,6 +12,8 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { CloudinaryService } from './modules/cloudinary/cloudinary.service';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
+import { BookingModule } from './modules/booking/booking.module';
+import { CommentsModule } from './modules/comments/comments.module';
 
 @Module({
   imports: [
@@ -20,12 +22,14 @@ import { RoomsModule } from './modules/rooms/rooms.module';
       serveRoot: '/upload',
     }),
     ConfigModule.forRoot(),
-    AuthModule,
-    UsersModule,
-    PrismaModule,
-    LocationsModule,
     CloudinaryModule,
+    PrismaModule,
+    AuthModule,
+    CommentsModule,
+    BookingModule,
+    UsersModule,
     RoomsModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, TokenCheckStategy, CloudinaryService],
